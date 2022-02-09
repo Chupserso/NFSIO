@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js" integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg==" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <title>Game</title>
     <style>
         * {
@@ -19,6 +20,21 @@
             width: 100%;
             height: 100%;
         }
+        .speed {
+            position: absolute;
+            left: 30px;
+            top: 30px;
+            width: 300px;
+            height: 300px;
+        }
+        #speedCounter {
+            color: white;
+            font-size: 50px;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            position: absolute;
+            left: 150px;
+            top: 130px;
+        }
     </style>
 </head>
 <body>
@@ -30,6 +46,10 @@
         camera.position.z = 450;
         camera.position.x = -80;
         camera.position.y = 110;
+        let run = new Audio("run.mp3");
+        let engine = new Audio("engine.mp3");
+        engine.play();
+        let music = new Audio("music.mp3");
         let renderer = new THREE.WebGLRenderer({alpha: false, antialias:true});
         renderer.setSize(innerWidth, innerHeight);
         document.body.appendChild(renderer.domElement);
@@ -40,34 +60,146 @@
         scene.add(pLight);
         let loader = new THREE.GLTFLoader();
         let obj = null;
-        let carX = 0;
-        document.onkeydown = function(e) {
-            if (e.keyCode == 65) {
-                carX = 100
-            }
-            if (e.keyCode == 68) {
-                carX = 500;
-            }
-        }
+        scene.background = new THREE.Color("#43A4FF");
+        let startCount = 0;
+        let obj1 = null;
+        let speedCounter = 1;
+        let obj2 = null;
+        let speed = 1;
         loader.load("player/scene.gltf", function(gltf){
             let obj = gltf.scene;
             obj.scale.set(40, 40, 40);
             obj.rotation.y = 0;
-            obj.position.x = carX;
+            if (speed <= 1) {
+                startCount = 0;
+            }
+            function checker() {
+                requestAnimationFrame(checker);
+                if (obj.position.z < -2400) {
+                    obj.position.z += 6100;
+                    camera.position.z += 6100;
+                    aLight.position.z += 6100;
+                    pLight.position.z += 6100;
+                }
+            }
+            checker();
+            document.onkeydown = function(e) {
+                if (e.keyCode == 65) {
+                    obj.position.x -= 20;
+                    camera.position.x -= 20;
+                    obj.rotation.y = 0.1;
+                    obj.rotation.z = 0.05;
+                }
+                if (obj.position.x < -270) {
+                    speed = 0;
+                    document.location.href = "lose.html";
+                }
+                if (obj.position.x > 450) {
+                    speed = 0;
+                    document.location.href = "lose.html";
+                }
+                if (e.keyCode == 68) {
+                    obj.position.x += 20;
+                    camera.position.x += 20;
+                    obj.rotation.y = -0.1;
+                    obj.rotation.z = -0.03;
+                }
+                if (e.keyCode == 87) {
+                    if (speedCounter <= 250) {
+                        speedCounter += 1;
+                    }
+                    startCount += 1;
+                    obj.rotation.x = 0.03;
+                    if (speed <= 70) {
+                        speed += 3;
+                    }
+                    run.play();
+                    let start = new Audio("start.mp3");
+                    if (speed < 5) {
+                        startCount = 0;
+                    }
+                    console.log(speed);
+                    if (startCount < 20 && startCount > 1) {
+                        start.play();
+                    }
+                    engine.pause();
+                }
+                if (e.keyCode == 83) {
+                    if (speedCounter > 0) {
+                        speedCounter -= 2;
+                    }
+                    if (speedCounter == -1 || speedCounter == 0) {
+                        speedCounter = 1;
+                    }
+                    if (speed > 2) {
+                        obj.rotation.x = -0.03;
+                        speed -= speed / 35;
+                        run.pause();
+                        run.ended();
+                    }
+                }
+            }
+            function drive() {
+                requestAnimationFrame(drive);
+                obj.position.z -= speed;
+                camera.position.z -= speed;
+                aLight.position.z -= speed;
+                pLight.position.z -= speed;
+            }
+            drive();
+            document.onkeyup = function(e) {
+                if (e.keyCode == 65) {
+                    obj.rotation.y = 0;
+                    obj.rotation.z = 0;
+                }
+                if (e.keyCode == 68) {
+                    obj.rotation.y = 0;
+                    obj.rotation.z = 0;
+                }
+                if (e.keyCode == 87) {
+                    speed -= 3;
+                    obj.rotation.x = 0;
+                    run.pause();
+                    run.ended();
+                }
+                if (e.keyCode == 83) {
+                    obj.rotation.x = 0;
+                }
+            }
             scene.add(obj);
         });
         loader.load("road/scene.gltf", function(gltf){
-            let obj = gltf.scene;
-            obj.scale.set(20, 20, 40);
-            obj.rotation.y = 0
-            obj.position.y = -50;
-            scene.add(obj);
+            let obj1 = gltf.scene;
+            obj1.scale.set(20, 20, 70);
+            obj1.rotation.y = 0
+            obj1.position.y = -50;
+            scene.add(obj1);
+        });
+        loader.load("sun/scene.gltf", function(gltf){
+            let obj2 = gltf.scene;
+            obj2.scale.set(550, 550, 550);
+            obj2.position.z = -3020;
+            obj2.position.y = 1400;
+            obj2.position.x = 2600;
+            function sun() {
+                requestAnimationFrame(sun);
+                obj2.position.z -= speed;
+                if (obj2.position.z < -5400) {
+                    obj2.position.z += 6100;
+                }
+            }
+            sun();
+            scene.add(obj2);
         });
         function animate() {
             requestAnimationFrame(animate);
+            //music.play();
+            document.getElementById("speedCounter").innerHTML = speedCounter;
             renderer.render(scene, camera);
         }
         animate();
     </script>
+    <img class="speed" src="speed.png" alt="speed">
+    <h1 id="speedCounter">0</h1>
 </body>
 </html>
