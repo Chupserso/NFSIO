@@ -14,9 +14,14 @@
             <h1>You lose!!</h1>
         </div>
     </header>
+    <script>
+        "use strict";
+
+        document.querySelector("h1").innerHTML = `You lose! Your score is: ${localStorage.getItem("score")}`;
+    </script>
     <main>
         <div>
-            <button onclick="playBtn(this)">Play</button>
+            <button onclick="playBtn(this)">Replay</button>
         </div>
     </main>
     <footer>

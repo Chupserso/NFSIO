@@ -35,6 +35,14 @@
             left: 150px;
             top: 130px;
         }
+        #score {
+            font-size: 70px;
+            color: black;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            position: absolute;
+            left: 700px;
+            top: 30px;
+        }
     </style>
 </head>
 <body>
@@ -49,6 +57,7 @@
         let run = new Audio("run.mp3");
         let engine = new Audio("engine.mp3");
         engine.play();
+        let loseAudio = new Audio("lose.mp3");
         let music = new Audio("music.mp3");
         let renderer = new THREE.WebGLRenderer({alpha: false, antialias:true});
         renderer.setSize(innerWidth, innerHeight);
@@ -62,10 +71,12 @@
         let obj = null;
         scene.background = new THREE.Color("#43A4FF");
         let startCount = 0;
+        let score = 0;
         let obj1 = null;
         let speedCounter = 1;
         let obj2 = null;
         let speed = 1;
+        let lose = false;
         loader.load("player/scene.gltf", function(gltf){
             let obj = gltf.scene;
             obj.scale.set(40, 40, 40);
@@ -83,62 +94,67 @@
                 }
             }
             checker();
-            document.onkeydown = function(e) {
-                if (e.keyCode == 65) {
-                    obj.position.x -= 20;
-                    camera.position.x -= 20;
-                    obj.rotation.y = 0.1;
-                    obj.rotation.z = 0.05;
+            setInterval(() => {
+                document.onkeydown = function(e) {
+                    if (e.keyCode == 65) {
+                        obj.position.x -= 25;
+                        camera.position.x -= 25;
+                        obj.rotation.y = 0.1;
+                        obj.rotation.z = 0.05;
+                    }
+                    if (obj.position.x < -270) {
+                        speed = 0;
+                        document.location.href = "lose.html";
+                    }
+                    if (obj.position.x > 450) {
+                        speed = 0;
+                        document.location.href = "lose.html";
+                    }
+                    if (e.keyCode == 68) {
+                        obj.position.x += 25;
+                        camera.position.x += 25;
+                        obj.rotation.y = -0.1;
+                        obj.rotation.z = -0.03;
+                    }
+                    if (e.keyCode == 87) {
+                        if (lose == false) {
+                            score += 1;
+                        }
+                        if (speedCounter <= 250) {
+                            speedCounter += 2;
+                        }
+                        startCount += 1;
+                        obj.rotation.x = 0.03;
+                        if (speed <= 70) {
+                            speed += 3;
+                        }
+                        run.play();
+                        let start = new Audio("start.mp3");
+                        if (speed < 5) {
+                            startCount = 0;
+                        }
+                        console.log(speed);
+                        if (startCount < 20 && startCount > 1) {
+                            start.play();
+                        }
+                        engine.pause();
+                    }
+                    if (e.keyCode == 83) {
+                        if (speedCounter > 0) {
+                            speedCounter -= 4;
+                        }
+                        if (speedCounter == -1 || speedCounter == 0 || speedCounter <= 0) {
+                            speedCounter = 1;
+                        }
+                        if (speed > 2) {
+                            obj.rotation.x = -0.03;
+                            speed -= speed / 25;
+                            run.pause();
+                            run.ended();
+                        }
+                    }
                 }
-                if (obj.position.x < -270) {
-                    speed = 0;
-                    document.location.href = "lose.html";
-                }
-                if (obj.position.x > 450) {
-                    speed = 0;
-                    document.location.href = "lose.html";
-                }
-                if (e.keyCode == 68) {
-                    obj.position.x += 20;
-                    camera.position.x += 20;
-                    obj.rotation.y = -0.1;
-                    obj.rotation.z = -0.03;
-                }
-                if (e.keyCode == 87) {
-                    if (speedCounter <= 250) {
-                        speedCounter += 1;
-                    }
-                    startCount += 1;
-                    obj.rotation.x = 0.03;
-                    if (speed <= 70) {
-                        speed += 3;
-                    }
-                    run.play();
-                    let start = new Audio("start.mp3");
-                    if (speed < 5) {
-                        startCount = 0;
-                    }
-                    console.log(speed);
-                    if (startCount < 20 && startCount > 1) {
-                        start.play();
-                    }
-                    engine.pause();
-                }
-                if (e.keyCode == 83) {
-                    if (speedCounter > 0) {
-                        speedCounter -= 2;
-                    }
-                    if (speedCounter == -1 || speedCounter == 0) {
-                        speedCounter = 1;
-                    }
-                    if (speed > 2) {
-                        obj.rotation.x = -0.03;
-                        speed -= speed / 35;
-                        run.pause();
-                        run.ended();
-                    }
-                }
-            }
+            }, 10);
             function drive() {
                 requestAnimationFrame(drive);
                 obj.position.z -= speed;
@@ -161,11 +177,41 @@
                     obj.rotation.x = 0;
                     run.pause();
                     run.ended();
+                    engine.play();
                 }
                 if (e.keyCode == 83) {
                     obj.rotation.x = 0;
                 }
             }
+            loader.load("player/scene.gltf", function(gltf){
+                let obj3 = gltf.scene;
+                obj3.scale.set(40, 40, 40);
+                obj3.rotation.y = 3.1;
+                obj3.position.x = -220;
+                obj3.position.y = 0;
+                obj3.position.z = -90;
+                obj3.position.x = Math.floor(Math.random() * 300);
+                obj3.position.z = -2500;
+                function animateEnemy() {
+                    requestAnimationFrame(animateEnemy);
+                    if (lose == false) {
+                        obj3.position.z += 20;
+                    }
+                    if (obj3.position.z >= 0) {
+                        obj3.position.x = Math.floor(Math.random() * -280);
+                        obj3.position.z = -2600;
+                    }
+                    if (obj.position.x + 10 > obj3.position.x && obj.position.x < obj3.position.x + 320 && obj.position.z < obj3.position.z + 300 && obj.position.z > obj3.position.z - 315) {
+                        loseAudio.play();
+                        localStorage.setItem("score", score);
+                        lose = true;
+                        speed = 0;
+                        document.location.href = "lose.html";
+                    }
+                }
+                animateEnemy();
+                scene.add(obj3);
+            });
             scene.add(obj);
         });
         loader.load("road/scene.gltf", function(gltf){
@@ -193,13 +239,15 @@
         });
         function animate() {
             requestAnimationFrame(animate);
-            //music.play();
+            music.play();
             document.getElementById("speedCounter").innerHTML = speedCounter;
+            document.getElementById("score").innerHTML = score;
             renderer.render(scene, camera);
         }
         animate();
     </script>
     <img class="speed" src="speed.png" alt="speed">
     <h1 id="speedCounter">0</h1>
+    <h2 id="score">5</h2>
 </body>
 </html>
