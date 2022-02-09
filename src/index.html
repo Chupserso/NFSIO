@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en-ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js" integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg==" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <title>3D</title>
+</head>
+<body>
+    <script>
+        "use strict";
+        let scene = new THREE.Scene();
+        let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+        camera.position.z = 7;
+        camera.position.y = 0;
+        let renderer = new THREE.WebGLRenderer({alpha: true, antialias:true});
+        renderer.setSize(innerWidth, innerHeight);
+        document.body.appendChild(renderer.domElement);
+        const aLight = new THREE.AmbientLight(0x404040, 56);
+        scene.add(aLight);
+        const pLight = new THREE.PointLight(0xFFFFFF, 1);
+        pLight.position.set(0, -3, 7);
+        scene.add(pLight);
+        let loader = new THREE.GLTFLoader();
+        let obj = null;
+        loader.load("scene.gltf", function(gltf){
+            let obj = gltf.scene;
+            obj.scale.set(40, 40, 40);
+            scene.add(obj);
+            function anim() {
+                requestAnimationFrame(anim);
+                obj.rotation.y += 0.05;
+            }
+            anim();
+        });
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
