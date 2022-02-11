@@ -54,7 +54,6 @@
         camera.position.z = 450;
         camera.position.x = -80;
         camera.position.y = 110;
-        let run = new Audio("run.mp3");
         let engine = new Audio("engine.mp3");
         engine.play();
         let loseAudio = new Audio("lose.mp3");
@@ -65,7 +64,7 @@
         const aLight = new THREE.AmbientLight(0x404040, 20);
         scene.add(aLight);
         const pLight = new THREE.PointLight(0xFFFFFF, 1);
-        pLight.position.set(200, 1200, 7);
+        pLight.position.set(200, 1200, -500);
         scene.add(pLight);
         let loader = new THREE.GLTFLoader();
         let obj = null;
@@ -76,13 +75,57 @@
         let speedCounter = 1;
         let obj2 = null;
         let speed = 1;
+        let carX = 0;
         let lose = false;
+        let run = new Audio("run.mp3");
+        let moveStatus = {
+            right: false,
+            left: false,
+            top: false,
+            bottom: false
+        };
         loader.load("player/scene.gltf", function(gltf){
             let obj = gltf.scene;
             obj.scale.set(40, 40, 40);
             obj.rotation.y = 0;
             if (speed <= 1) {
                 startCount = 0;
+            }
+            document.onkeydown = function(e) {
+                if (e.keyCode == 65) {
+                    moveStatus.left = true;
+                }
+                if (e.keyCode == 68) {
+                    moveStatus.right = true;
+                }
+                if (e.keyCode == 87) {
+                    moveStatus.top = true;
+                }
+                if (e.keyCode == 83) {
+                    moveStatus.bottom = true;
+                }
+            };
+            document.onkeyup = function(e) {
+                if (e.keyCode == 65) {
+                    moveStatus.left = false;
+                    obj.rotation.y = 0;
+                }
+                if (e.keyCode == 68) {
+                    moveStatus.right = false;
+                    obj.rotation.y = 0;
+                }
+                if (e.keyCode == 87) {
+                    moveStatus.top = false;
+                    speed -= 3;
+                    obj.rotation.x = 0;
+                    run.pause();
+                    run.ended();
+                    engine.play();
+                }
+                if (e.keyCode == 83) {
+                    moveStatus.bottom = false;
+                    obj.rotation.x = 0;
+                }
             }
             function checker() {
                 requestAnimationFrame(checker);
@@ -92,69 +135,71 @@
                     aLight.position.z += 6100;
                     pLight.position.z += 6100;
                 }
-            }
-            checker();
-            setInterval(() => {
-                document.onkeydown = function(e) {
-                    if (e.keyCode == 65) {
-                        obj.position.x -= 25;
-                        camera.position.x -= 25;
-                        obj.rotation.y = 0.1;
-                        obj.rotation.z = 0.05;
+                if (moveStatus.left == true) {
+                    obj.position.x -= 15;
+                    camera.position.x -= 15;
+                    obj.rotation.y = 0.1;
+                }
+                if (moveStatus.right == true) {
+                    obj.position.x += 15;
+                    camera.position.x += 15;
+                    obj.rotation.y = -0.1;
+                }
+                if (moveStatus.top == true) {
+                    if (lose == false) {
+                        score += 1;
                     }
-                    if (obj.position.x < -270) {
-                        speed = 0;
-                        document.location.href = "lose.html";
+                    if (speedCounter <= 250) {
+                        speedCounter += 1;
                     }
-                    if (obj.position.x > 450) {
-                        speed = 0;
-                        document.location.href = "lose.html";
+                    startCount += 1;
+                    obj.rotation.x = 0.03;
+                    if (speed <= 70) {
+                        speed += 1;
                     }
-                    if (e.keyCode == 68) {
-                        obj.position.x += 25;
-                        camera.position.x += 25;
-                        obj.rotation.y = -0.1;
-                        obj.rotation.z = -0.03;
+                    run.play();
+                    let start = new Audio("start.mp3");
+                    if (speed < 5) {
+                        startCount = 0;
                     }
-                    if (e.keyCode == 87) {
-                        if (lose == false) {
-                            score += 1;
-                        }
-                        if (speedCounter <= 250) {
-                            speedCounter += 2;
-                        }
-                        startCount += 1;
-                        obj.rotation.x = 0.03;
-                        if (speed <= 70) {
-                            speed += 3;
-                        }
-                        run.play();
-                        let start = new Audio("start.mp3");
-                        if (speed < 5) {
-                            startCount = 0;
-                        }
-                        console.log(speed);
-                        if (startCount < 20 && startCount > 1) {
-                            start.play();
-                        }
-                        engine.pause();
+                    console.log(speed);
+                    if (startCount < 20 && startCount > 1) {
+                        start.play();
                     }
-                    if (e.keyCode == 83) {
-                        if (speedCounter > 0) {
-                            speedCounter -= 4;
-                        }
-                        if (speedCounter == -1 || speedCounter == 0 || speedCounter <= 0) {
-                            speedCounter = 1;
-                        }
-                        if (speed > 2) {
-                            obj.rotation.x = -0.03;
-                            speed -= speed / 25;
-                            run.pause();
-                            run.ended();
-                        }
+                    engine.pause();
+                }
+                if (moveStatus.bottom == true) {
+                    if (speedCounter > 0) {
+                        speedCounter -= 4;
+                    }
+                    if (speedCounter == -1 || speedCounter == 0 || speedCounter <= 0) {
+                        speedCounter = 1;
+                    }
+                    if (speed > 2) {
+                        obj.rotation.x = -0.03;
+                        speed -= speed / 25;
+                        run.pause();
+                        run.ended();
                     }
                 }
-            }, 10);
+                if (obj.position.x < -270) {
+                    speed = 0;
+                    document.location.href = "lose.html";
+                }
+                if (obj.position.x > 450) {
+                    speed = 0;
+                    document.location.href = "lose.html";
+                }
+                console.log(moveStatus);
+            }
+            loader.load("road/scene.gltf", function(gltf){
+                let obj1 = gltf.scene;
+                obj1.scale.set(20, 20, 70);
+                obj1.rotation.y = 0
+                obj1.position.y = -50;
+                scene.add(obj1);
+            });
+            checker();
             function drive() {
                 requestAnimationFrame(drive);
                 obj.position.z -= speed;
@@ -163,26 +208,6 @@
                 pLight.position.z -= speed;
             }
             drive();
-            document.onkeyup = function(e) {
-                if (e.keyCode == 65) {
-                    obj.rotation.y = 0;
-                    obj.rotation.z = 0;
-                }
-                if (e.keyCode == 68) {
-                    obj.rotation.y = 0;
-                    obj.rotation.z = 0;
-                }
-                if (e.keyCode == 87) {
-                    speed -= 3;
-                    obj.rotation.x = 0;
-                    run.pause();
-                    run.ended();
-                    engine.play();
-                }
-                if (e.keyCode == 83) {
-                    obj.rotation.x = 0;
-                }
-            }
             loader.load("player/scene.gltf", function(gltf){
                 let obj3 = gltf.scene;
                 obj3.scale.set(40, 40, 40);
@@ -190,8 +215,7 @@
                 obj3.position.x = -220;
                 obj3.position.y = 0;
                 obj3.position.z = -90;
-                obj3.position.x = Math.floor(Math.random() * 300);
-                obj3.position.z = -2500;
+                obj3.position.z = -3000;
                 function animateEnemy() {
                     requestAnimationFrame(animateEnemy);
                     if (lose == false) {
@@ -199,7 +223,7 @@
                     }
                     if (obj3.position.z >= 0) {
                         obj3.position.x = Math.floor(Math.random() * -280);
-                        obj3.position.z = -2600;
+                        obj3.position.z = -3000;
                     }
                     if (obj.position.x + 10 > obj3.position.x && obj.position.x < obj3.position.x + 320 && obj.position.z < obj3.position.z + 300 && obj.position.z > obj3.position.z - 315) {
                         loseAudio.play();
@@ -213,13 +237,6 @@
                 scene.add(obj3);
             });
             scene.add(obj);
-        });
-        loader.load("road/scene.gltf", function(gltf){
-            let obj1 = gltf.scene;
-            obj1.scale.set(20, 20, 70);
-            obj1.rotation.y = 0
-            obj1.position.y = -50;
-            scene.add(obj1);
         });
         loader.load("sun/scene.gltf", function(gltf){
             let obj2 = gltf.scene;

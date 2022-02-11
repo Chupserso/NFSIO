@@ -1,0 +1,75 @@
+document.onkeydown = function(e) {
+    if (e.keyCode == 65) {
+        obj.position.x -= 1;
+        camera.position.x -= 1;
+    }
+    if (obj.position.x < -270) {
+        speed = 0;
+        document.location.href = "lose.html";
+    }
+    if (obj.position.x > 450) {
+        speed = 0;
+        document.location.href = "lose.html";
+    }
+    if (e.keyCode == 68) {
+        obj.position.x += 1;
+        camera.position.x += 21;
+    }
+    if (e.keyCode == 87) {
+        if (lose == false) {
+            score += 1;
+        }
+        if (speedCounter <= 250) {
+            speedCounter += 2;
+        }
+        startCount += 1;
+        obj.rotation.x = 0.03;
+        if (speed <= 70) {
+            speed += 3;
+        }
+        run.play();
+        let start = new Audio("start.mp3");
+        if (speed < 5) {
+            startCount = 0;
+        }
+        console.log(speed);
+        if (startCount < 20 && startCount > 1) {
+            start.play();
+        }
+        engine.pause();
+    }
+    if (e.keyCode == 83) {
+        if (speedCounter > 0) {
+            speedCounter -= 4;
+        }
+        if (speedCounter == -1 || speedCounter == 0 || speedCounter <= 0) {
+            speedCounter = 1;
+        }
+        if (speed > 2) {
+            obj.rotation.x = -0.03;
+            speed -= speed / 25;
+            run.pause();
+            run.ended();
+        }
+    }
+}
+document.onkeyup = function(e) {
+    if (e.keyCode == 65) {
+        obj.rotation.y = 0;
+        obj.rotation.z = 0;
+    }
+    if (e.keyCode == 68) {
+        obj.rotation.y = 0;
+        obj.rotation.z = 0;
+    }
+    if (e.keyCode == 87) {
+        speed -= 3;
+        obj.rotation.x = 0;
+        run.pause();
+        run.ended();
+        engine.play();
+    }
+    if (e.keyCode == 83) {
+        obj.rotation.x = 0;
+    }
+}
