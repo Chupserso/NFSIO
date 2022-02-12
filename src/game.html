@@ -212,18 +212,17 @@
                 let obj3 = gltf.scene;
                 obj3.scale.set(40, 40, 40);
                 obj3.rotation.y = 3.1;
-                obj3.position.x = -220;
                 obj3.position.y = 0;
                 obj3.position.z = -90;
-                obj3.position.z = -3000;
+                obj3.position.z = -15000;
                 function animateEnemy() {
                     requestAnimationFrame(animateEnemy);
                     if (lose == false) {
                         obj3.position.z += 20;
                     }
-                    if (obj3.position.z >= 0) {
-                        obj3.position.x = Math.floor(Math.random() * -280);
-                        obj3.position.z = -3000;
+                    if (obj3.position.z >= 2000) {
+                        obj3.position.x = Math.floor(Math.random() * -340);
+                        obj3.position.z = -15000;
                     }
                     if (obj.position.x + 10 > obj3.position.x && obj.position.x < obj3.position.x + 320 && obj.position.z < obj3.position.z + 300 && obj.position.z > obj3.position.z - 315) {
                         loseAudio.play();
@@ -256,7 +255,7 @@
         });
         function animate() {
             requestAnimationFrame(animate);
-            music.play();
+            //music.play();
             document.getElementById("speedCounter").innerHTML = speedCounter;
             document.getElementById("score").innerHTML = score;
             renderer.render(scene, camera);
